@@ -5,6 +5,7 @@ import cors from "cors";
 
 import AuthRoute from "./routes/auth-routes.js";
 import ProductRoute from "./routes/product-route.js";
+import CustomerRoute from "./routes/customer-route.js";
 
 const app = express();
 
@@ -24,6 +25,7 @@ app.get("/", (req, res) => {
 
 app.use("/api/auth", AuthRoute);
 app.use("/api/product", ProductRoute);
+app.use("/api/customer", CustomerRoute);
 
 const PORT = process.env.API_PORT || 3001;
 app.listen(PORT, () => console.log(`Server berjalan pada port ${PORT}`));
