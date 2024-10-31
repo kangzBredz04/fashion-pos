@@ -32,8 +32,7 @@ This project is a **Point of Sale (POS) System for Fashion Retail** that allows 
 
 - **Frontend**: React.js, Tailwind CSS
 - **Backend**: Node.js, Express.js
-- **Database**: PostgreSQL
-- **Authentication**: JWT-based Authentication for secure login and access control
+- **Database**: MySQL
 
 ## Setup
 
