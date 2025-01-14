@@ -1,8 +1,9 @@
 /* eslint-disable no-unused-vars */
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { AllContext } from "../App";
 import { api } from "../util";
 import { useNavigate } from "react-router-dom";
+import { DownloadTableExcel } from "react-export-table-to-excel";
 
 export default function Product() {
   const { products } = useContext(AllContext);
@@ -128,8 +129,10 @@ export default function Product() {
     setSelectedCategory(category);
   };
 
+  // EXPORT DATA TABLE TO EXCEL
+  const tableRef = useRef(null);
   return (
-    <div className="container mx-auto my-10">
+    <div className="mx-10 my-10">
       {/* Add and Search Bar */}
       <div className="flex justify-between mb-4">
         <button
@@ -181,10 +184,18 @@ export default function Product() {
           </select>
           <label>entries</label>
         </div>
+        <DownloadTableExcel
+          filename="Product Data"
+          sheet="Product"
+          currentTableRef={tableRef.current}
+          className="px-6 py-3 bg-blue-500 text-white font-semibold rounded-md hover:bg-blue-600 transition"
+        >
+          Export to Excel
+        </DownloadTableExcel>
       </div>
 
       {/* Product Table */}
-      <table className="min-w-full bg-white border">
+      <table className="min-w-full bg-white border" ref={tableRef}>
         <thead>
           <tr>
             <th className="border px-4 py-2">No</th>
