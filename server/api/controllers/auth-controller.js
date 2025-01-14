@@ -4,16 +4,23 @@ import argon2 from "argon2";
 
 // Register controller
 export const register = async (req, res) => {
-  const { full_name, username, password } = req.body;
+  const { full_name, username, password, role } = req.body;
 
   try {
-    // Hash password dengan argon2
-    const hashPassword = await argon2.hash(password);
+    // Check if the username already exists
+    const [existingUser] = await db.query(
+      "SELECT * FROM users WHERE username = ?",
+      [username]
+    );
 
-    // Insert user ke database
+    if (existingUser.length > 0) {
+      return res.status(400).json({ msg: "Username sudah digunakan" });
+    }
+
+    // Insert user ke database tanpa hashing password
     const [result] = await db.query(
-      "INSERT INTO users (full_name, username, password) VALUES (?, ?, ?)",
-      [full_name, username, hashPassword]
+      "INSERT INTO users (full_name, username, password, role) VALUES (?, ?, ?, ?)",
+      [full_name, username, password, role] // Save password directly
     );
 
     res
@@ -44,32 +51,13 @@ export const login = async (req, res) => {
       return res.status(400).json({ msg: "Password tidak boleh kosong" });
     }
 
-    console.log("Password dari DB:", user.password);
-    console.log("Password dari Postman:", req.body.password);
-
-    // Verifikasi password
-    const match = await argon2.verify(user.password, password);
-        
-    if (!match) {
+    // Bandingkan password dari input dan yang ada di database
+    if (user.password !== password) {
       return res.status(400).json({ msg: "Password salah" });
     }
 
-    // Buat token JWT
-    const token = jwt.sign(
-      { id: user.id, username: user.username },
-      process.env.JWT_SECRET,
-      {
-        expiresIn: "1d",
-      }
-    );
-
-    // Simpan token dalam cookie
-    res.cookie("token", token, {
-      httpOnly: true,
-      maxAge: 24 * 60 * 60 * 1000, // 1 hari
-    });
-
-    res.json({ msg: "Login berhasil" });
+    // Jika login berhasil
+    res.json({ msg: "Login berhasil", data: user });
   } catch (error) {
     res.status(500).json({ msg: error.message });
   }

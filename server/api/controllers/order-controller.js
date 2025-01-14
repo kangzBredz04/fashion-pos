@@ -1,37 +1,38 @@
 import db from "../config/db.js";
 
-// Create new order
 export const createOrder = async (req, res) => {
-  const { customer_id, items, total_amount, payment_status } = req.body;
-
+  const { items, total, discount } = req.body;
   try {
-    // Mulai transaksi
-    await db.query("BEGIN");
-
-    // Buat pesanan baru di tabel `orders`
     const result = await db.query(
-      `INSERT INTO orders (customer_id, total_amount, payment_status) VALUES ($1, $2, $3) RETURNING *`,
-      [customer_id, total_amount, payment_status]
+      `INSERT INTO orders (order_date, total, payment_status, discount) 
+     VALUES (NOW(), ?, ?, ?)`,
+      [total, "Paid", discount]
     );
-    const order = result.rows[0];
-    const orderId = order.order_id;
 
-    // Tambahkan item ke tabel `order_items`
-    for (const item of items) {
-      const { product_id, quantity, unit_price, total_price } = item;
+    const orderId = result[0].insertId;
 
-      await db.query(
-        `INSERT INTO order_items (order_id, product_id, quantity, unit_price, total_price) VALUES ($1, $2, $3, $4, $5)`,
-        [orderId, product_id, quantity, unit_price, total_price]
-      );
+    if (!orderId) {
+      throw new Error("Failed to retrieve order ID.");
     }
 
-    // Commit transaksi
-    await db.query("COMMIT");
+    for (const item of items) {
+      const { id_product, quantity, total_price } = item;
 
-    res.status(201).json({ msg: "Order created successfully", data: order });
+      await db.query(
+        `INSERT INTO order_items (id_order, id_product, quantity, total_price) 
+       VALUES (?, ?, ?, ?)`,
+        [orderId, id_product, quantity, total_price]
+      );
+
+      await db.query(`UPDATE products SET stock = stock - ? WHERE id = ?`, [
+        quantity,
+        id_product,
+      ]);
+    }
+    res
+      .status(201)
+      .json({ msg: "Pesanan Berhasil Diproses", data: { order_id: orderId } });
   } catch (error) {
-    await db.query("ROLLBACK");
     res.status(500).json({ msg: "Error creating order", error: error.message });
   }
 };
@@ -39,8 +40,23 @@ export const createOrder = async (req, res) => {
 // Get all orders
 export const getOrders = async (req, res) => {
   try {
-    const orders = await db.query("SELECT * FROM orders");
-    res.status(200).json({ data: orders.rows });
+    const [orders] = await db.query(`
+      SELECT 
+        o.order_date,
+        p.name AS product_name,
+        oi.id_order,
+        oi.quantity,
+        p.price,
+        (oi.quantity * p.price) AS total,
+        o.payment_status
+      FROM 
+        orders o
+      JOIN 
+        order_items oi ON o.id = oi.id_order
+      JOIN 
+        products p ON oi.id_product = p.id
+          `);
+    res.status(200).json({ data: orders });
   } catch (error) {
     res
       .status(500)
@@ -48,72 +64,36 @@ export const getOrders = async (req, res) => {
   }
 };
 
-// Get order by ID with items
+export const getOrders2 = async (req, res) => {
+  try {
+    const [orders] = await db.query("SELECT * FROM orders");
+    res.status(200).json({ data: orders });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ msg: "Error retrieving orders", error: error.message });
+  }
+};
+
 export const getOrderById = async (req, res) => {
   const { id } = req.params;
 
   try {
-    const order = await db.query("SELECT * FROM orders WHERE order_id = $1", [
-      id,
-    ]);
+    const order = await db.query("SELECT * FROM orders WHERE id = ?", [id]);
 
-    if (order.rows.length === 0) {
+    if (order.length === 0) {
       return res.status(404).json({ msg: "Order not found" });
     }
 
     const orderItems = await db.query(
-      "SELECT * FROM order_items WHERE order_id = $1",
+      "SELECT * FROM order_items WHERE id_order = ?",
       [id]
     );
 
-    res.status(200).json({ order: order.rows[0], items: orderItems.rows });
+    res.status(200).json({ order: order[0], items: orderItems[0] });
   } catch (error) {
     res
       .status(500)
       .json({ msg: "Error retrieving order", error: error.message });
-  }
-};
-
-// Update order status
-export const updateOrderStatus = async (req, res) => {
-  const { id } = req.params;
-  const { payment_status } = req.body;
-
-  try {
-    const result = await db.query(
-      "UPDATE orders SET payment_status = $1 WHERE order_id = $2 RETURNING *",
-      [payment_status, id]
-    );
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({ msg: "Order not found" });
-    }
-
-    res.status(200).json({ msg: "Order status updated", data: result.rows[0] });
-  } catch (error) {
-    res
-      .status(500)
-      .json({ msg: "Error updating order status", error: error.message });
-  }
-};
-
-// Delete an order
-export const deleteOrder = async (req, res) => {
-  const { id } = req.params;
-
-  try {
-    await db.query("DELETE FROM order_items WHERE order_id = $1", [id]);
-    const result = await db.query(
-      "DELETE FROM orders WHERE order_id = $1 RETURNING *",
-      [id]
-    );
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({ msg: "Order not found" });
-    }
-
-    res.status(200).json({ msg: "Order deleted successfully" });
-  } catch (error) {
-    res.status(500).json({ msg: "Error deleting order", error: error.message });
   }
 };

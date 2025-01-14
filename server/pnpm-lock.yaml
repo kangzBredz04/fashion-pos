@@ -1314,6 +1314,7 @@ snapshots:
   'server@file:':
     dependencies:
       argon2: 0.41.1
+      bcrypt: 5.1.1
       cookie-parser: 1.4.7
       cors: 2.8.5
       dotenv: 16.4.5
@@ -1322,6 +1323,7 @@ snapshots:
       mysql2: 3.11.3
       nodemon: 3.1.7
     transitivePeerDependencies:
+      - encoding
       - supports-color
 
   set-blocking@2.0.0: {}

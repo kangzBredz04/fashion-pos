@@ -1,41 +1,28 @@
 /* eslint-disable no-unused-vars */
-import { useContext, useEffect, useState } from "react";
+import { useContext, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { AllContext } from "../App";
 import { api } from "../util";
-import { useNavigate } from "react-router-dom";
 
-export default function Product() {
-  const { products } = useContext(AllContext);
+export default function Discount() {
+  const { discounts } = useContext(AllContext);
+
   const [showPopup, setShowPopup] = useState(false);
   const [isEdit, setIsEdit] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [selectedDiscount, setSelectedDiscount] = useState(null);
   const [search, setSearch] = useState("");
   const [entries, setEntries] = useState(5);
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedCategory, setSelectedCategory] = useState("All");
 
-  const navigate = useNavigate(); // Initialize navigate for redirection
-
-  // Check localStorage for user data on component mount
-  useEffect(() => {
-    const fullName = localStorage.getItem("full_name");
-    const username = localStorage.getItem("username");
-    const role = localStorage.getItem("role");
-
-    // Redirect if user data is missing
-    if (!fullName || !username || !role) {
-      navigate("/restricted"); // Redirect to restricted access page
-    }
-  }, [navigate]);
+  const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
     id: 0,
     name: "",
-    description: "",
-    price: "",
-    stock: "",
-    size: "S",
-    category: "",
+    code: "",
+    total_discount: 0, // Added total_discount field
+    status: 1,
   });
 
   const handleInputChange = (e) => {
@@ -47,22 +34,20 @@ export default function Product() {
     e.preventDefault();
     if (isEdit) {
       api
-        .put(`/product/${formData.id}`, formData)
+        .put(`/discount/${formData.id}`, formData)
         .then((res) => alert(res.msg));
     } else {
-      api.post("/product", formData).then((res) => alert(res.msg));
+      api.post("/discount", formData).then((res) => alert(res.msg));
     }
-    // Add logic for saving data (e.g., API call)
+    // Handle the form submission logic here (for edit or add)
     window.location.reload();
     setShowPopup(false);
     setFormData({
       id: 0,
       name: "",
-      description: "",
-      price: "",
-      stock: "",
-      size: "S",
-      category: "",
+      code: "",
+      total_discount: 0, // Reset total_discount on form close
+      status: 1,
     });
   };
 
@@ -71,50 +56,49 @@ export default function Product() {
     setFormData({
       id: 0,
       name: "",
-      description: "",
-      price: "",
-      stock: "",
-      size: "S",
-      category: "",
+      code: "",
+      total_discount: 0, // Reset total_discount for new discount
+      status: 1,
     });
     setShowPopup(true);
   };
 
-  const handleEditData = (product) => {
+  const handleEditData = (discount) => {
     setIsEdit(true);
     setFormData({
-      id: product.id,
-      name: product.name,
-      description: product.description,
-      price: product.price,
-      stock: product.stock,
-      size: product.size,
-      category: product.category,
+      id: discount.id,
+      name: discount.name,
+      code: discount.code,
+      total_discount: discount.total_discount, // Set the total_discount for editing
+      status: discount.status,
     });
     setShowPopup(true);
   };
 
-  const handleDeleteProduct = (id) => {
-    if (window.confirm("Apakah anda yakin akan menghapus barang ini?")) {
-      api.delete(`/product/${id}`).then((res) => alert(res.msg));
+  const handleDeleteDiscount = (id) => {
+    if (window.confirm("Apakah anda yakin akan menghapus diskon ini?")) {
+      api.delete(`/discount/${id}`).then((res) => alert(res.msg));
       window.location.reload();
     }
   };
 
   const handleSearch = (e) => setSearch(e.target.value);
 
-  const filteredProducts = products.filter(
-    (product) =>
-      product.name.toLowerCase().includes(search.toLowerCase()) &&
-      (selectedCategory === "All" || product.category === selectedCategory)
+  const filteredDiscounts = discounts.filter(
+    (discount) =>
+      (discount.name.toLowerCase().includes(search.toLowerCase()) ||
+        discount.code.toLowerCase().includes(search.toLowerCase())) &&
+      (selectedCategory === "All" ||
+        (selectedCategory === "Aktif" && discount.status === 1) ||
+        (selectedCategory === "Non-Aktif" && discount.status === 0))
   );
 
-  const paginatedProducts = filteredProducts.slice(
+  const paginatedDiscounts = filteredDiscounts.slice(
     (currentPage - 1) * entries,
     currentPage * entries
   );
 
-  const totalPages = Math.ceil(filteredProducts.length / entries);
+  const totalPages = Math.ceil(filteredDiscounts.length / entries);
 
   const handlePreviousPage = () => {
     if (currentPage > 1) setCurrentPage(currentPage - 1);
@@ -136,7 +120,7 @@ export default function Product() {
           onClick={handleAddData}
           className="bg-blue-500 text-white px-4 py-2 rounded"
         >
-          <i className="fas fa-plus"></i> Tambah Barang
+          <i className="fas fa-plus"></i> Tambah Diskon
         </button>
         <div className="flex items-center">
           <label className="mr-2">Cari:</label>
@@ -151,7 +135,7 @@ export default function Product() {
 
       {/* Category Filter Buttons */}
       <div className="mb-4">
-        {["All", "Kaos", "Hoodie", "Celana"].map((category) => (
+        {["All", "Aktif", "Non-Aktif"].map((category) => (
           <button
             key={category}
             onClick={() => handleCategoryChange(category)}
@@ -183,34 +167,30 @@ export default function Product() {
         </div>
       </div>
 
-      {/* Product Table */}
+      {/* Discount Table */}
       <table className="min-w-full bg-white border">
         <thead>
           <tr>
             <th className="border px-4 py-2">No</th>
             <th className="border px-4 py-2">Nama</th>
-            <th className="border px-4 py-2">Deskripsi</th>
-            <th className="border px-4 py-2">Harga</th>
-            <th className="border px-4 py-2">Stok</th>
-            <th className="border px-4 py-2">Ukuran</th>
-            <th className="border px-4 py-2">Kategori</th>
+            <th className="border px-4 py-2">Kode</th>
+            <th className="border px-4 py-2">Persentase</th>{" "}
+            {/* New header for total_discount */}
+            <th className="border px-4 py-2">Status</th>
             <th className="border px-4 py-2">Aksi</th>
           </tr>
         </thead>
         <tbody>
-          {paginatedProducts.map((item, index) => (
+          {paginatedDiscounts.map((item, index) => (
             <tr key={item.id}>
               <td className="border px-4 py-2">{index + 1}</td>
               <td className="border px-4 py-2">{item.name}</td>
+              <td className="border px-4 py-2">{item.code}</td>
+              <td className="border px-4 py-2">{item.total_discount}%</td>{" "}
+              {/* Displaying total_discount */}
               <td className="border px-4 py-2">
-                {item.description.length > 25
-                  ? `${item.description.substring(0, 25)}...`
-                  : item.description}
+                {item.status === 1 ? "Aktif" : "Non-Aktif"}
               </td>
-              <td className="border px-4 py-2">{item.price}</td>
-              <td className="border px-4 py-2">{item.stock}</td>
-              <td className="border px-4 py-2">{item.size}</td>
-              <td className="border px-4 py-2">{item.category}</td>
               <td className="border px-4 py-2">
                 <button
                   onClick={() => handleEditData(item)}
@@ -219,7 +199,7 @@ export default function Product() {
                   <i className="fas fa-edit"></i> Edit
                 </button>
                 <button
-                  onClick={() => handleDeleteProduct(item.id)}
+                  onClick={() => handleDeleteDiscount(item.id)}
                   className="bg-red-500 text-white px-2 py-1 rounded"
                 >
                   <i className="fas fa-trash"></i> Hapus
@@ -234,9 +214,9 @@ export default function Product() {
       <div className="flex justify-between mt-4">
         <div>
           Showing{" "}
-          {Math.min((currentPage - 1) * entries + 1, filteredProducts.length)}{" "}
-          to {Math.min(currentPage * entries, filteredProducts.length)} of{" "}
-          {filteredProducts.length} entries
+          {Math.min((currentPage - 1) * entries + 1, filteredDiscounts.length)}{" "}
+          to {Math.min(currentPage * entries, filteredDiscounts.length)} of{" "}
+          {filteredDiscounts.length} entries
         </div>
         <div className="flex items-center">
           <button
@@ -262,77 +242,65 @@ export default function Product() {
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
           <div className="bg-white p-5 rounded shadow-lg w-96">
             <h2 className="text-lg mb-3">
-              {isEdit ? "Edit Produk" : "Tambah Produk"}
+              {isEdit ? "Edit Diskon" : "Tambah Diskon"}
             </h2>
             <form onSubmit={handleSubmit}>
-              <label className="block mb-2">Nama:</label>
-              <input
-                type="text"
-                name="name"
-                className="border rounded w-full px-2 py-1 mb-3"
-                value={formData.name}
-                onChange={handleInputChange}
-                required
-              />
-              <label className="block mb-2">Deskripsi:</label>
-              <input
-                type="text"
-                name="description"
-                className="border rounded w-full px-2 py-1 mb-3"
-                value={formData.description}
-                onChange={handleInputChange}
-                required
-              />
-              <label className="block mb-2">Harga:</label>
-              <input
-                type="number"
-                name="price"
-                className="border rounded w-full px-2 py-1 mb-3"
-                value={formData.price}
-                onChange={handleInputChange}
-                required
-              />
-              <label className="block mb-2">Stok:</label>
-              <input
-                type="number"
-                name="stock"
-                className="border rounded w-full px-2 py-1 mb-3"
-                value={formData.stock}
-                onChange={handleInputChange}
-                required
-              />
-              <label className="block mb-2">Ukuran:</label>
-              <select
-                name="size"
-                className="border rounded w-full px-2 py-1 mb-3"
-                value={formData.size}
-                onChange={handleInputChange}
-              >
-                <option value="S">S</option>
-                <option value="M">M</option>
-                <option value="L">L</option>
-                <option value="XL">XL</option>
-              </select>
-              <label className="block mb-2">Kategori:</label>
-              <input
-                type="text"
-                name="category"
-                className="border rounded w-full px-2 py-1 mb-3"
-                value={formData.category}
-                onChange={handleInputChange}
-                required
-              />
-              <div className="flex justify-between">
+              <div className="mb-4">
+                <label className="block mb-1">Nama:</label>
+                <input
+                  type="text"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleInputChange}
+                  required
+                  className="border rounded w-full px-2 py-1"
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block mb-1">Kode:</label>
+                <input
+                  type="text"
+                  name="code"
+                  value={formData.code}
+                  onChange={handleInputChange}
+                  required
+                  className="border rounded w-full px-2 py-1"
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block mb-1">Persentase:</label>
+                <input
+                  type="number"
+                  name="total_discount"
+                  value={formData.total_discount}
+                  onChange={handleInputChange}
+                  required
+                  className="border rounded w-full px-2 py-1"
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block mb-1">Status:</label>
+                <select
+                  name="status"
+                  value={formData.status}
+                  onChange={handleInputChange}
+                  className="border rounded w-full px-2 py-1"
+                >
+                  <option value={1}>Aktif</option>
+                  <option value={0}>Non-Aktif</option>
+                </select>
+              </div>
+              <div className="flex justify-end">
                 <button
                   type="button"
-                  className="bg-gray-300 px-4 py-2 rounded"
                   onClick={() => setShowPopup(false)}
+                  className="bg-gray-500 text-white px-2 py-1 rounded mr-2"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
-                  className="bg-blue-500 text-white px-4 py-2 rounded"
+                  className="bg-blue-500 text-white px-4 py-1 rounded"
                 >
                   Simpan
                 </button>
