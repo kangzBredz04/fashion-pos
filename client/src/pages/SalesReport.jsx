@@ -1,5 +1,6 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { AllContext } from "../App";
+import { DownloadTableExcel } from "react-export-table-to-excel";
 
 // Utility function to format numbers to Indonesian Rupiah
 const formatRupiah = (amount) => {
@@ -66,6 +67,9 @@ export default function SalesReport() {
     .sort((a, b) => b[1] - a[1])
     .slice(0, 3); // Get top 3 sold products
 
+  // EXPORT DATA TABLE TO EXCEL
+  const tableRef = useRef(null);
+
   return (
     <div className="container mx-auto px-4 py-6">
       <h1 className="text-2xl font-semibold mb-4">Laporan Penjualan</h1>
@@ -100,10 +104,20 @@ export default function SalesReport() {
           <option value={10}>Tampilkan 10</option>
           <option value={15}>Tampilkan 15</option>
         </select>
+
+        <div className="px-6 py-3 bg-blue-500 text-white font-semibold rounded-md hover:bg-blue-600 transition cursor-pointer">
+          <DownloadTableExcel
+            filename="Laporan Harian"
+            sheet="Laporan Harian"
+            currentTableRef={tableRef.current}
+          >
+            Export to Excel
+          </DownloadTableExcel>
+        </div>
       </div>
 
       {/* Sales Table */}
-      <table className="w-full bg-white shadow-md rounded">
+      <table className="w-full bg-white shadow-md rounded" ref={tableRef}>
         <thead className="bg-gray-100">
           <tr>
             <th className="p-3 border">No</th>

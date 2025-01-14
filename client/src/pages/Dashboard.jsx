@@ -132,6 +132,29 @@ export default function Dashboard() {
     }
   };
 
+  // PROGRAM BARCODE
+  const [inputCode, setInputCode] = useState("");
+  const handleInputChange = (e) => {
+    const value = e.target.value;
+    setInputCode(value);
+
+    // Cari produk berdasarkan kode barang
+    console.log(products);
+
+    const foundProduct = products.find((product) => product.barcode === value);
+
+    if (foundProduct) {
+      // Cek apakah produk sudah ada di daftar pembelian
+      const isAlreadyAdded = purchases.some(
+        (item) => item.id === foundProduct.id
+      );
+
+      if (!isAlreadyAdded) {
+        setPurchases([...purchases, { ...foundProduct, quantity: 1 }]);
+      }
+    }
+  };
+
   return (
     <div className="flex gap-3 p-3">
       {/* PRINT PDF */}
@@ -200,148 +223,92 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <div className="w-3/4 bg-gray-100 p-5 rounded-lg shadow-md">
-        <h1 className="text-gray-800 text-2xl font-bold">Daftar Pembelian</h1>
-        {purchases.length > 0 ? (
-          <table className="w-full mt-5 bg-white text-center">
-            <thead>
-              <tr className="bg-gray-200">
-                <th className="p-2 text-gray-700">No</th>
-                <th className="p-2 text-gray-700">Nama</th>
-                <th className="p-2 text-gray-700">Harga</th>
-                <th className="p-2 text-gray-700">Ukuran</th>
-                <th className="p-2 text-gray-700">Kategori</th>
-                <th className="p-2 text-gray-700">Jumlah</th>
-                <th className="p-2 text-gray-700">Aksi</th>
-              </tr>
-            </thead>
-            <tbody>
-              {purchases.map((item, index) => (
-                <tr key={item.id} className="border-b">
-                  <td className="p-2 text-gray-700">{index + 1}</td>
-                  <td className="p-2 text-gray-700">{item.name}</td>
-                  <td className="p-2 text-gray-700">
-                    {formatCurrency(item.price)}
-                  </td>
-                  <td className="p-2 text-gray-700">{item.size}</td>
-                  <td className="p-2 text-gray-700">{item.category}</td>
-                  <td className="p-2">
-                    <div className="flex justify-around mt-1">
-                      <button
-                        onClick={() => updateQuantity(item.id, 1)}
-                        className="bg-blue-500 text-white rounded-full px-2 flex items-center"
-                      >
-                        +
-                      </button>
-                      {item.quantity}
-                      <button
-                        onClick={() => updateQuantity(item.id, -1)}
-                        className="bg-blue-500 text-white rounded-full px-2 flex items-center"
-                      >
-                        -
-                      </button>
-                    </div>
-                  </td>
-                  <td className="p-2">
+      <div className="w-full bg-gray-100 p-5 rounded-lg shadow-md">
+        <h1 className="text-gray-800 text-2xl font-bold">Transaksi Kasir</h1>
+        <div className="my-2">
+          <p>Kode Barang</p>
+          <input
+            type="text"
+            value={inputCode}
+            onChange={handleInputChange}
+            className="p-1 border border-gray-300 rounded w-1/3"
+          />
+        </div>
+        <table className="w-full mt-5 bg-white text-center">
+          <thead>
+            <tr className="bg-gray-200">
+              <th className="p-2 text-gray-700">No</th>
+              <th className="p-2 text-gray-700">Nama Barang</th>
+              <th className="p-2 text-gray-700">Ukuran</th>
+              <th className="p-2 text-gray-700">Harga Satuan</th>
+              {/* <th className="p-2 text-gray-700">Kategori</th> */}
+              <th className="p-2 text-gray-700">Jumlah</th>
+              <th className="p-2 text-gray-700">Harga Akhir</th>
+              <th className="p-2 text-gray-700">Aksi</th>
+            </tr>
+          </thead>
+          <tbody>
+            {purchases.map((item, index) => (
+              <tr key={item.id} className="border-b">
+                <td className="p-2 text-gray-700">{index + 1}</td>
+                <td className="p-2 text-gray-700">{item.name}</td>
+                <td className="p-2 text-gray-700">{item.size}</td>
+                <td className="p-2 text-gray-700">
+                  {formatCurrency(item.price)}
+                </td>
+                {/* <td className="p-2 text-gray-700">{item.category}</td> */}
+                <td className="p-2">
+                  <div className="flex justify-around mt-1">
                     <button
-                      onClick={() => updateQuantity(item.id, -item.quantity)}
-                      className="bg-red-400 text-white rounded-md px-3 py-1 hover:bg-red-500"
+                      onClick={() => updateQuantity(item.id, 1)}
+                      className="bg-blue-500 text-white rounded-full px-2 flex items-center"
                     >
-                      Hapus
+                      +
                     </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        ) : (
-          <p className="text-gray-700 mt-5">
-            Belum ada pesanan. Silakan tambah pesanan.
-          </p>
-        )}
-        {purchases.length > 0 ? (
-          <div className="mt-5">
-            <input
-              type="text"
-              value={discountCode}
-              onChange={(e) => setDiscountCode(e.target.value)}
-              placeholder="Masukkan kode diskon"
-              className="p-2 border border-gray-300 rounded"
-            />
-            <button
-              onClick={validateDiscountCode}
-              className="bg-green-500 text-white px-4 py-2 ml-2 rounded"
-            >
-              Gunakan
-            </button>
-          </div>
-        ) : (
-          ""
-        )}
+                    {item.quantity}
+                    <button
+                      onClick={() => updateQuantity(item.id, -1)}
+                      className="bg-blue-500 text-white rounded-full px-2 flex items-center"
+                    >
+                      -
+                    </button>
+                  </div>
+                </td>
+                <td>10</td>
+                <td className="p-2">
+                  <button
+                    onClick={() => updateQuantity(item.id, -item.quantity)}
+                    className="bg-red-400 text-white rounded-md px-3 py-1 hover:bg-red-500"
+                  >
+                    Hapus
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        <div className="mt-5">
+          <input
+            type="text"
+            value={discountCode}
+            onChange={(e) => setDiscountCode(e.target.value)}
+            placeholder="Masukkan kode diskon"
+            className="p-2 border border-gray-300 rounded"
+          />
+          <button
+            onClick={validateDiscountCode}
+            className="bg-green-500 text-white px-4 py-2 ml-2 rounded"
+          >
+            Gunakan
+          </button>
+        </div>
+
         <button
           onClick={() => setShowPopup(true)}
           className="mt-5 w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600"
         >
           Tambah Pesanan
-        </button>
-      </div>
-
-      <div className="w-1/4 bg-blue-100 flex-col p-3 rounded-lg shadow-md">
-        <h1 className="text-2xl text-gray-700 font-bold mb-1">Total</h1>
-        <h1 className="text-2xl text-gray-800 font-semibold">
-          {formatCurrency(totalAmount)}
-        </h1>
-
-        {/* Discount Section */}
-        {discountAmount > 0 && (
-          <div className="mt-4">
-            <h1 className="text-2xl text-gray-700 font-bold mb-1">Diskon</h1>
-            <h1 className="text-2xl text-red-500 font-semibold">
-              {formatCurrency(discountAmount)} (Diskon: {discountPercentage}%)
-            </h1>
-          </div>
-        )}
-
-        {/* Total After Discount */}
-        <h1 className=" mt-4">
-          <h1 className="text-2xl text-gray-700 font-bold mb-1">
-            Total Setelah Diskon:
-          </h1>
-          <h1 className="text-2xl text-gray-700 font-semibold">
-            {formatCurrency(totalAmount - discountAmount)}
-          </h1>
-        </h1>
-        <div className="relative mt-2">
-          <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
-            Rp
-          </span>
-          <input
-            type="text"
-            placeholder="Masukan total uang tunai"
-            className="rounded-md p-2 w-full pl-10 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-300"
-            value={cash}
-            onChange={(e) =>
-              setCash(
-                e.target.value
-                  .replace(/\D/g, "")
-                  .replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1.")
-              )
-            }
-          />
-        </div>
-        <h1 className="text-lg text-gray-700 mt-2">
-          Kembali {formatCurrency(changeAmount)}
-        </h1>
-        <button
-          onClick={handleProcess}
-          disabled={changeAmount < 0}
-          className={`w-full py-2 rounded-md font-bold mt-2 transition text-white ${
-            changeAmount < 0
-              ? "bg-green-300"
-              : "bg-green-500 hover:bg-green-600"
-          }`}
-        >
-          Proses
         </button>
       </div>
 

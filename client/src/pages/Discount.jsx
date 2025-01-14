@@ -113,7 +113,7 @@ export default function Discount() {
   };
 
   return (
-    <div className="container mx-auto my-10">
+    <div className=" mx-10 my-10">
       {/* Add and Search Bar */}
       <div className="flex justify-between mb-4">
         <button

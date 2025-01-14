@@ -131,6 +131,7 @@ export default function Product() {
 
   // EXPORT DATA TABLE TO EXCEL
   const tableRef = useRef(null);
+
   return (
     <div className="mx-10 my-10">
       {/* Add and Search Bar */}
@@ -184,14 +185,15 @@ export default function Product() {
           </select>
           <label>entries</label>
         </div>
-        <DownloadTableExcel
-          filename="Product Data"
-          sheet="Product"
-          currentTableRef={tableRef.current}
-          className="px-6 py-3 bg-blue-500 text-white font-semibold rounded-md hover:bg-blue-600 transition"
-        >
-          Export to Excel
-        </DownloadTableExcel>
+        <div className="px-6 py-3 bg-blue-500 text-white font-semibold rounded-md hover:bg-blue-600 transition cursor-pointer">
+          <DownloadTableExcel
+            filename="Product Data"
+            sheet="Product"
+            currentTableRef={tableRef.current}
+          >
+            Export to Excel
+          </DownloadTableExcel>
+        </div>
       </div>
 
       {/* Product Table */}
