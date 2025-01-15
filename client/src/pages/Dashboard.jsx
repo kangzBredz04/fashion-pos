@@ -151,6 +151,7 @@ export default function Dashboard() {
 
       if (!isAlreadyAdded) {
         setPurchases([...purchases, { ...foundProduct, quantity: 1 }]);
+        setInputCode("");
       }
     }
   };
@@ -274,7 +275,7 @@ export default function Dashboard() {
                     </button>
                   </div>
                 </td>
-                <td>10</td>
+                <td> {formatCurrency(item.price * item.quantity)}</td>
                 <td className="p-2">
                   <button
                     onClick={() => updateQuantity(item.id, -item.quantity)}
@@ -304,15 +305,33 @@ export default function Dashboard() {
           </button>
         </div>
 
-        <button
+        <div className="mt-3 p-2 flex flex-col gap-3">
+          <p>Sub Total : {formatCurrency(totalAmount)}</p>
+          {discountPercentage < 1 ? (
+            ""
+          ) : (
+            <p>
+              Diskon {discountPercentage} % : {formatCurrency(discountAmount)}
+            </p>
+          )}
+          <p>Total Harga {formatCurrency(totalAmount - discountAmount)}</p>
+        </div>
+
+        {/* <button
           onClick={() => setShowPopup(true)}
           className="mt-5 w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600"
         >
           Tambah Pesanan
+        </button> */}
+        <button
+          onClick={handleProcess}
+          className="w-full bg-green-500 py-2 rounded-md font-bold mt-2 text-white hover:bg-green-600 transition"
+        >
+          Proses
         </button>
       </div>
 
-      {showPopup && (
+      {/* {showPopup && (
         <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-60">
           <div className="bg-white p-6 rounded-lg shadow-lg w-1/2 max-w-md">
             <h2 className="text-xl font-semibold mb-4 text-gray-800">
@@ -347,7 +366,7 @@ export default function Dashboard() {
             </button>
           </div>
         </div>
-      )}
+      )} */}
     </div>
   );
 }

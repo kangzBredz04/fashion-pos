@@ -21,19 +21,19 @@ USE `fashion-pos`;
 DROP TABLE IF EXISTS `discounts`;
 
 CREATE TABLE `discounts` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `name` varchar(100) DEFAULT NULL,
-  `code` varchar(100) DEFAULT NULL,
-  `status` tinyint(1) DEFAULT NULL,
-  `total_discount` int(11) DEFAULT NULL,
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `name` VARCHAR(100) DEFAULT NULL,
+  `code` VARCHAR(100) DEFAULT NULL,
+  `status` TINYINT(1) DEFAULT NULL,
+  `total_discount` INT(11) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=INNODB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 /*Data for the table `discounts` */
 
 LOCK TABLES `discounts` WRITE;
 
-insert  into `discounts`(`id`,`name`,`code`,`status`,`total_discount`) values 
+INSERT  INTO `discounts`(`id`,`name`,`code`,`status`,`total_discount`) VALUES 
 (1,'Diskon Lebaran','LEBARAN2024',1,5),
 (2,'Diskon Akhir Tahun','ENDYEAR2024',0,10),
 (3,'Diskon Bulan Merdeka','MERDEKA2024',0,10),
@@ -47,23 +47,23 @@ UNLOCK TABLES;
 DROP TABLE IF EXISTS `order_items`;
 
 CREATE TABLE `order_items` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `id_order` int(11) DEFAULT NULL,
-  `id_product` int(11) DEFAULT NULL,
-  `quantity` int(11) DEFAULT NULL,
-  `total_price` int(11) DEFAULT NULL,
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `id_order` INT(11) DEFAULT NULL,
+  `id_product` INT(11) DEFAULT NULL,
+  `quantity` INT(11) DEFAULT NULL,
+  `total_price` INT(11) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `id_order` (`id_order`),
   KEY `id_product` (`id_product`),
   CONSTRAINT `order_items_ibfk_1` FOREIGN KEY (`id_order`) REFERENCES `orders` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `order_items_ibfk_2` FOREIGN KEY (`id_product`) REFERENCES `products` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=49 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=INNODB AUTO_INCREMENT=49 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 /*Data for the table `order_items` */
 
 LOCK TABLES `order_items` WRITE;
 
-insert  into `order_items`(`id`,`id_order`,`id_product`,`quantity`,`total_price`) values 
+INSERT  INTO `order_items`(`id`,`id_order`,`id_product`,`quantity`,`total_price`) VALUES 
 (32,43,3,1,75000),
 (33,43,7,3,225000),
 (34,44,5,1,125000),
@@ -89,19 +89,19 @@ UNLOCK TABLES;
 DROP TABLE IF EXISTS `orders`;
 
 CREATE TABLE `orders` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `order_date` datetime DEFAULT NULL,
-  `total` int(11) DEFAULT NULL,
-  `payment_status` varchar(30) DEFAULT NULL,
-  `discount` int(11) DEFAULT NULL,
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `order_date` DATETIME DEFAULT NULL,
+  `total` INT(11) DEFAULT NULL,
+  `payment_status` VARCHAR(30) DEFAULT NULL,
+  `discount` INT(11) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=54 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=INNODB AUTO_INCREMENT=54 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 /*Data for the table `orders` */
 
 LOCK TABLES `orders` WRITE;
 
-insert  into `orders`(`id`,`order_date`,`total`,`payment_status`,`discount`) values 
+INSERT  INTO `orders`(`id`,`order_date`,`total`,`payment_status`,`discount`) VALUES 
 (43,'2024-11-01 09:10:57',300000,'Paid',0),
 (44,'2024-11-01 09:25:29',725002,'Paid',0),
 (45,'2024-11-01 11:31:02',125000,'Paid',0),
@@ -121,21 +121,21 @@ UNLOCK TABLES;
 DROP TABLE IF EXISTS `products`;
 
 CREATE TABLE `products` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `name` varchar(30) DEFAULT NULL,
-  `description` text DEFAULT NULL,
-  `price` int(11) DEFAULT NULL,
-  `stock` int(11) DEFAULT NULL,
-  `size` varchar(11) DEFAULT NULL,
-  `category` varchar(30) DEFAULT NULL,
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `name` VARCHAR(30) DEFAULT NULL,
+  `description` TEXT DEFAULT NULL,
+  `price` INT(11) DEFAULT NULL,
+  `stock` INT(11) DEFAULT NULL,
+  `size` VARCHAR(11) DEFAULT NULL,
+  `category` VARCHAR(30) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=INNODB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 /*Data for the table `products` */
 
 LOCK TABLES `products` WRITE;
 
-insert  into `products`(`id`,`name`,`description`,`price`,`stock`,`size`,`category`) values 
+INSERT  INTO `products`(`id`,`name`,`description`,`price`,`stock`,`size`,`category`) VALUES 
 (3,'Kaos Polos','Kaos polos berbahan katun yang nyaman.',75000,85,'M','Kaos'),
 (5,'Kaos Distro','Kaos Distro keren',125000,86,'L','Kaos'),
 (6,'Hoodie Laki','Hoodie Laki',150000,35,'XL','Hoodie'),
@@ -150,23 +150,25 @@ UNLOCK TABLES;
 DROP TABLE IF EXISTS `users`;
 
 CREATE TABLE `users` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `full_name` varchar(30) DEFAULT NULL,
-  `username` varchar(30) NOT NULL,
-  `password` varchar(256) DEFAULT NULL,
-  `role` varchar(30) DEFAULT NULL,
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `full_name` VARCHAR(30) DEFAULT NULL,
+  `username` VARCHAR(30) NOT NULL,
+  `password` VARCHAR(256) DEFAULT NULL,
+  `role` VARCHAR(30) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=INNODB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 /*Data for the table `users` */
 
 LOCK TABLES `users` WRITE;
 
-insert  into `users`(`id`,`full_name`,`username`,`password`,`role`) values 
+INSERT  INTO `users`(`id`,`full_name`,`username`,`password`,`role`) VALUES 
 (4,'Wahyu','wabredz1234@gmail.com','12','Kasir'),
 (5,'Wahyu','wahyu','123','Kasir'),
 (6,'admin','admin','1','Owner'),
 (9,'coba','coba','1','Kasir');
+
+ALTER TABLE products ADD COLUMN barcode VARCHAR(50) AFTER id;
 
 UNLOCK TABLES;
 
