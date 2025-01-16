@@ -68,9 +68,6 @@ export default function Dashboard() {
     0
   );
   const discountedTotal = totalAmount - discountAmount;
-  const changeAmount = cash
-    ? parseInt(cash.replace(/\./g, "")) - discountedTotal
-    : 0;
 
   const handleProcess = () => {
     if (window.confirm("Apakah Anda yakin ingin memproses pesanan?")) {
@@ -83,6 +80,8 @@ export default function Dashboard() {
           total_price: item.price * item.quantity,
         })),
         discount: discountAmount,
+        payment_method: paymentMethod,
+        card_number: paymentMethod === "cash" ? "---" : cardNumber,
       };
 
       api.post("/order", order).then((res) => {
@@ -92,8 +91,10 @@ export default function Dashboard() {
         setDiscountCode("");
         setDiscountAmount(0);
         setDiscountPercentage(0);
+        setPaymentMethod("");
+        setCashAmount("");
+        setCardNumber("");
 
-        // Show the print area, trigger print, then hide it again
         const printArea = document.getElementById("print-area");
         printArea.style.display = "block";
         window.print();
@@ -154,6 +155,32 @@ export default function Dashboard() {
         setInputCode("");
       }
     }
+  };
+
+  // PILIH METODE PEMBAYARAN
+  const [paymentMethod, setPaymentMethod] = useState("");
+  const [cashAmount, setCashAmount] = useState("");
+  const [cardNumber, setCardNumber] = useState("");
+
+  const handlePaymentChange = (method) => {
+    setPaymentMethod(method);
+    setCashAmount("");
+    setCardNumber("");
+  };
+
+  const isComplete =
+    (paymentMethod === "cash" && cashAmount > totalAmount - discountAmount) ||
+    (["debit", "credit"].includes(paymentMethod) &&
+      cardNumber.trim().length > 0);
+
+  const handleCashInput = (e) => {
+    const rawValue = e.target.value.replace(/[^\d]/g, ""); // Menghapus semua karakter non-angka
+    setCashAmount(rawValue);
+  };
+
+  const formatCurrency = (value) => {
+    if (!value) return "Rp0";
+    return `Rp${parseInt(value, 10).toLocaleString("id-ID")}`;
   };
 
   return (
@@ -232,7 +259,8 @@ export default function Dashboard() {
             type="text"
             value={inputCode}
             onChange={handleInputChange}
-            className="p-1 border border-gray-300 rounded w-1/3"
+            placeholder="Masukan Kode Barang"
+            className="p-2 border border-gray-300 rounded w-1/3"
           />
         </div>
         <table className="w-full mt-5 bg-white text-center">
@@ -317,56 +345,71 @@ export default function Dashboard() {
           <p>Total Harga {formatCurrency(totalAmount - discountAmount)}</p>
         </div>
 
-        {/* <button
-          onClick={() => setShowPopup(true)}
-          className="mt-5 w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600"
-        >
-          Tambah Pesanan
-        </button> */}
+        <div className="my-2">
+          <label className="block text-gray-700 font-medium">
+            Pilih Metode Pembayaran
+          </label>
+          <select
+            value={paymentMethod}
+            onChange={(e) => handlePaymentChange(e.target.value)}
+            className="p-2 border border-gray-300 rounded w-full bg-white mt-2"
+          >
+            <option value="" disabled>
+              Pilih Metode Pembayaran
+            </option>
+            <option value="cash">Cash</option>
+            <option value="debit">Debit</option>
+            <option value="credit">Kredit</option>
+          </select>
+        </div>
+
+        {/* Bagian Input Berdasarkan Metode Pembayaran */}
+        {paymentMethod === "cash" && (
+          <div className="my-2">
+            <label className="block text-gray-700 font-medium">
+              Jumlah Cash
+            </label>
+            <input
+              type="text"
+              value={formatCurrency(cashAmount)}
+              onChange={handleCashInput}
+              className="p-2 border border-gray-300 rounded w-full mt-2"
+            />
+            <p className="mt-2 text-gray-600">
+              Kembalian:{" "}
+              <span className="font-bold text-gray-800">
+                {formatCurrency(cashAmount - (totalAmount - discountAmount))}
+              </span>
+            </p>
+          </div>
+        )}
+
+        {["debit", "credit"].includes(paymentMethod) && (
+          <div className="my-2">
+            <label className="block text-gray-700 font-medium">
+              Nomor Kartu
+            </label>
+            <input
+              type="text"
+              value={cardNumber}
+              onChange={(e) => setCardNumber(e.target.value)}
+              className="p-2 border border-gray-300 rounded w-full mt-2"
+            />
+          </div>
+        )}
+
         <button
           onClick={handleProcess}
-          className="w-full bg-green-500 py-2 rounded-md font-bold mt-2 text-white hover:bg-green-600 transition"
+          disabled={!isComplete}
+          className={`w-full mt-5 p-3 rounded text-white font-bold ${
+            isComplete
+              ? "bg-green-500 hover:bg-green-600"
+              : "bg-gray-300 cursor-not-allowed"
+          }`}
         >
-          Proses
+          Pesanan Selesai
         </button>
       </div>
-
-      {/* {showPopup && (
-        <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-60">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-1/2 max-w-md">
-            <h2 className="text-xl font-semibold mb-4 text-gray-800">
-              Pilih Barang
-            </h2>
-            {products.map((item) => (
-              <div
-                key={item.id}
-                className="flex justify-between items-center mb-3 p-3 border-b border-gray-200"
-              >
-                <div>
-                  <span className="font-medium text-gray-700">{item.name}</span>
-                  <div className="text-gray-600 text-sm">
-                    <span>{formatCurrency(item.price)}</span> |{" "}
-                    <span>Size: {item.size}</span> |{" "}
-                    <span>Category: {item.category}</span>
-                  </div>
-                </div>
-                <button
-                  onClick={() => addItemToPurchase(item)}
-                  className="bg-green-500 hover:bg-green-600 text-white font-medium py-1 px-3 rounded"
-                >
-                  Tambah
-                </button>
-              </div>
-            ))}
-            <button
-              onClick={() => setShowPopup(false)}
-              className="mt-4 w-full bg-red-500 hover:bg-red-600 text-white py-2 rounded font-semibold"
-            >
-              Tutup
-            </button>
-          </div>
-        </div>
-      )} */}
     </div>
   );
 }

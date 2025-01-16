@@ -170,6 +170,10 @@ INSERT  INTO `users`(`id`,`full_name`,`username`,`password`,`role`) VALUES
 
 ALTER TABLE products ADD COLUMN barcode VARCHAR(50) AFTER id;
 
+ALTER TABLE orders ADD COLUMN payment_method VARCHAR(50) AFTER discount;
+
+ALTER TABLE orders ADD COLUMN card_number VARCHAR(50) AFTER payment_method;
+
 UNLOCK TABLES;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;

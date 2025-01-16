@@ -1,12 +1,12 @@
 import db from "../config/db.js";
 
 export const createOrder = async (req, res) => {
-  const { items, total, discount } = req.body;
+  const { items, total, discount, payment_method, card_number } = req.body;
   try {
     const result = await db.query(
-      `INSERT INTO orders (order_date, total, payment_status, discount) 
-     VALUES (NOW(), ?, ?, ?)`,
-      [total, "Paid", discount]
+      `INSERT INTO orders (order_date, total, payment_status, discount, payment_method, card_number) 
+     VALUES (NOW(), ?, ?, ?, ?, ?)`,
+      [total, "Paid", discount, payment_method, card_number]
     );
 
     const orderId = result[0].insertId;
